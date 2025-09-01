@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <application android:icon="@drawable/ic_launcher">
+        <meta-data
+            android:name="com.m8test.plugin.description"
+            android:value="本组件实现了常用的但是不在M8Test脚本api中实现的功能。" />
+        <meta-data
+            android:name="com.m8test.plugin.url"
+            android:value="https://github.com/m8test/enhancement" />
+        <meta-data
+            android:name="com.m8test.plugin.type"
+            android:value="component" />
+        <meta-data
+            android:name="com.m8test.plugin.name"
+            android:value="M8TestEnhancement" />
+        <meta-data
+            android:name="com.m8test.plugin.className"
+            android:value="com.m8test.enhancement.EnhancementComponent" />
+        <meta-data
+            android:name="com.m8test.plugin.minRuntimeVersionName"
+            android:value="0.1.20" />
+    </application>
+</manifest>

@@ -1,0 +1,8 @@
+[versions]
+
+[libraries]
+m8test-compose-widget = { group = "com.m8test.compose", name = "widget", version = "0.1.1" }
+
+[plugins]
+
+[bundles]

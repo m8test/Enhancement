@@ -19,6 +19,6 @@
             android:value="com.m8test.enhancement.EnhancementComponent" />
         <meta-data
             android:name="com.m8test.plugin.minRuntimeVersionName"
-            android:value="0.1.20" />
+            android:value="0.1.32" />
     </application>
 </manifest>

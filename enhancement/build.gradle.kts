@@ -1,7 +1,4 @@
 import com.m8test.util.VersionUtils
-import java.net.URL
-import java.nio.file.Files
-import java.nio.file.StandardCopyOption
 
 
 plugins {
@@ -44,6 +41,7 @@ dependencies {
     compileOnly(m8test.m8test.sdk)
     dokkaPlugin(m8test.dokka.hide.internal.api)
     dokkaPlugin(m8test.dokka.code.provider.generator)
+    compileOnly(m8test.kotlinx.coroutines.android)
 }
 
 

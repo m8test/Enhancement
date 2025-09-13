@@ -3,6 +3,8 @@ package com.m8test.enhancement.impl.task
 import com.m8test.enhancement.api.task.AutoTask
 import com.m8test.enhancement.api.task.ScreenAction
 import com.m8test.enhancement.api.task.TaskScreen
+import com.m8test.script.core.api.coroutines.CoroutineScope
+import com.m8test.script.core.api.coroutines.Deferred
 
 /**
  * Description TODO
@@ -11,11 +13,19 @@ import com.m8test.enhancement.api.task.TaskScreen
  * @author M8Test, contact@m8test.com, https://m8test.com
  */
 class TaskScreenImpl(private val task: AutoTask) : TaskScreen {
-    private lateinit var matcher: () -> Boolean
-    override fun getMatcher(): () -> Boolean = matcher
+    private lateinit var matcher: (Map<String, Any>) -> Boolean
+    override fun getMatcher(): (Map<String, Any>) -> Boolean = matcher
 
-    override fun setMatcher(matcher: () -> Boolean) {
+    override fun setMatcher(matcher: (Map<String, Any>) -> Boolean) {
         this.matcher = matcher
+    }
+
+    private lateinit var asyncMatcher: (CoroutineScope, Map<String, Any>) -> Deferred<Boolean>
+    override fun getAsyncMatcher(): (CoroutineScope, Map<String, Any>) -> Deferred<Boolean> =
+        asyncMatcher
+
+    override fun setAsyncMatcher(matcher: (scope: CoroutineScope, Map<String, Any>) -> Deferred<Boolean>) {
+        this.asyncMatcher = matcher
     }
 
     private lateinit var action: ScreenAction

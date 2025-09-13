@@ -1,7 +1,7 @@
 package com.m8test.enhancement
 
 import com.m8test.dokka.annotation.Keep
-import com.m8test.enhancement.impl.task.AutoTaskImpl
+import com.m8test.enhancement.impl.task.AutoTasksImpl
 import com.m8test.plugin.api.ApkPluginProvider
 import com.m8test.script.core.api.component.Variable
 import com.m8test.script.core.api.engine.ScriptContext
@@ -18,6 +18,6 @@ class EnhancementComponent @Keep constructor(apkPluginProvider: ApkPluginProvide
     AbstractComponent(apkPluginProvider) {
     @Keep
     override fun getVariables(scriptContext: ScriptContext): List<Variable> {
-        return listOf(AutoTaskImpl(scriptContext))
+        return listOf(AutoTasksImpl(scriptContext))
     }
 }

@@ -2,6 +2,8 @@ package com.m8test.enhancement.impl.task
 
 import com.m8test.enhancement.api.task.ScreenAction
 import com.m8test.enhancement.api.task.TaskScreen
+import com.m8test.script.core.api.coroutines.CoroutineScope
+import com.m8test.script.core.api.coroutines.Deferred
 
 /**
  * Description TODO
@@ -30,5 +32,12 @@ class ScreenActionImpl(private val screen: TaskScreen) : ScreenAction {
     }
 
     override fun getPerform(): (TaskScreen?) -> String? = action
+    private lateinit var actionAsync: (CoroutineScope, TaskScreen?) -> Deferred<String?>
+    override fun onAsyncPerform(action: (CoroutineScope, previousScreen: TaskScreen?) -> Deferred<String?>) {
+        this.actionAsync = action
+    }
+
+    override fun getAsyncPerform(): (CoroutineScope, TaskScreen?) -> Deferred<String?> = actionAsync
+
     override fun getScreen(): TaskScreen = screen
 }

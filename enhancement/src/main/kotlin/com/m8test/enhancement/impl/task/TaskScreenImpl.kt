@@ -16,7 +16,7 @@ class TaskScreenImpl(private val task: AutoTask) : TaskScreen {
     private lateinit var matcher: (Map<String, Any>) -> Boolean
     override fun getMatcher(): (Map<String, Any>) -> Boolean = matcher
 
-    override fun setMatcher(matcher: (Map<String, Any>) -> Boolean) {
+    override fun match(matcher: (Map<String, Any>) -> Boolean) {
         this.matcher = matcher
     }
 
@@ -24,19 +24,19 @@ class TaskScreenImpl(private val task: AutoTask) : TaskScreen {
     override fun getAsyncMatcher(): (CoroutineScope, Map<String, Any>) -> Deferred<Boolean> =
         asyncMatcher
 
-    override fun setAsyncMatcher(matcher: (scope: CoroutineScope, Map<String, Any>) -> Deferred<Boolean>) {
+    override fun matchAsync(matcher: (scope: CoroutineScope, Map<String, Any>) -> Deferred<Boolean>) {
         this.asyncMatcher = matcher
     }
 
-    private lateinit var action: ScreenAction
-    override fun setAction(actionConfig: ScreenAction.() -> Unit) {
+    private lateinit var mAction: ScreenAction
+    override fun action(actionConfig: ScreenAction.() -> Unit) {
         // 不能调用两次 setAction 方法
-        if (this::action.isInitialized) error("setAction can't call twice")
-        this.action = ScreenActionImpl(this)
-        this.action.actionConfig()
+        if (this::mAction.isInitialized) error("setAction can't call twice")
+        this.mAction = ScreenActionImpl(this)
+        this.mAction.actionConfig()
     }
 
-    override fun getAction(): ScreenAction = action
+    override fun getAction(): ScreenAction = mAction
 
     override fun getTask(): AutoTask = task
     private lateinit var name: String

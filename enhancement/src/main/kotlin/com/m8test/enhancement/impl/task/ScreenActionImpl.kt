@@ -19,11 +19,11 @@ class ScreenActionImpl(private val screen: TaskScreen) : ScreenAction {
         this.name = name
     }
 
-    override fun getPerformTimes(): Int = times
+    override fun getExecutionCount(): Int = times
 
     private var times = 0
     private lateinit var action: (TaskScreen?) -> String?
-    override fun onPerform(action: (TaskScreen?) -> String?) {
+    override fun perform(action: (TaskScreen?) -> String?) {
         this.action = { screen ->
             val r = action(screen)
             times++
@@ -33,7 +33,7 @@ class ScreenActionImpl(private val screen: TaskScreen) : ScreenAction {
 
     override fun getPerform(): (TaskScreen?) -> String? = action
     private lateinit var actionAsync: (CoroutineScope, TaskScreen?) -> Deferred<String?>
-    override fun onAsyncPerform(action: (CoroutineScope, previousScreen: TaskScreen?) -> Deferred<String?>) {
+    override fun performAsync(action: (CoroutineScope, previousScreen: TaskScreen?) -> Deferred<String?>) {
         this.actionAsync = action
     }
 

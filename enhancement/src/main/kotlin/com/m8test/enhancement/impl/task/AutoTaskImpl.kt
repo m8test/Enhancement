@@ -5,6 +5,7 @@ import com.m8test.enhancement.api.task.TaskScreen
 import com.m8test.enhancement.impl.Stack
 import com.m8test.script.core.api.coroutines.CoroutineScope
 import com.m8test.script.core.api.coroutines.Deferred
+import com.m8test.script.core.api.coroutines.Job
 import com.m8test.script.core.api.engine.ScriptContext
 import com.m8test.script.core.impl.engine.AbstractScriptContextual
 import kotlinx.coroutines.async
@@ -32,7 +33,7 @@ class AutoTaskImpl(private val scriptContext: ScriptContext) : AutoTask,
         scriptContext.getBindings().getConsole().warn("已经完整检测 $it 次都没有匹配任何屏幕")
     }
 
-    override fun setScreenMissingHandler(handler: (Int) -> Unit) {
+    override fun onScreenMissing(handler: (Int) -> Unit) {
         this.screenMissingHandler = handler
     }
 
@@ -40,7 +41,7 @@ class AutoTaskImpl(private val scriptContext: ScriptContext) : AutoTask,
 //        scriptContext.getBindings().getConsole().info("before ${it.getName()} run")
     }
 
-    override fun beforeScreenActionPerform(hook: (TaskScreen) -> Unit) {
+    override fun beforeAction(hook: (TaskScreen) -> Unit) {
         this.beforeScreenActionPerformHook = hook
     }
 
@@ -48,7 +49,7 @@ class AutoTaskImpl(private val scriptContext: ScriptContext) : AutoTask,
 //        scriptContext.getBindings().getConsole().info("after ${it.getName()} run")
     }
 
-    override fun afterScreenActionPerform(hook: (TaskScreen) -> Unit) {
+    override fun afterAction(hook: (TaskScreen) -> Unit) {
         this.afterScreenActionPerformHook = hook
     }
 
@@ -62,7 +63,7 @@ class AutoTaskImpl(private val scriptContext: ScriptContext) : AutoTask,
         this.isLogEnabled = enabled
     }
 
-    override fun setProperties(properties: () -> Map<String, Any>) {
+    override fun provideProperties(properties: () -> Map<String, Any>) {
         this.properties = properties
     }
 
@@ -74,32 +75,32 @@ class AutoTaskImpl(private val scriptContext: ScriptContext) : AutoTask,
     }
 
     private var initializer: (() -> Boolean)? = null
-    override fun setInitializer(initializer: () -> Boolean) {
+    override fun onInitialize(initializer: () -> Boolean) {
         this.initializer = initializer
     }
 
     private var asyncInitializer: ((CoroutineScope) -> Deferred<Boolean>)? = null
-    override fun setAsyncInitializer(initializer: (CoroutineScope) -> Deferred<Boolean>) {
+    override fun onInitializeAsync(initializer: (CoroutineScope) -> Deferred<Boolean>) {
         this.asyncInitializer = initializer
     }
 
     private var stopped: (() -> Boolean)? = null
-    override fun setStopped(stopped: () -> Boolean) {
+    override fun stopWhen(stopped: () -> Boolean) {
         this.stopped = stopped
     }
 
     private var asyncStopped: ((CoroutineScope) -> Deferred<Boolean>)? = null
-    override fun setAsyncStopped(stopped: (CoroutineScope) -> Deferred<Boolean>) {
+    override fun stopWhenAsync(stopped: (CoroutineScope) -> Deferred<Boolean>) {
         this.asyncStopped = stopped
     }
 
-    private var asyncFinalizer: ((CoroutineScope) -> Deferred<Unit>)? = null
-    override fun setAsyncFinalizer(finalizer: (CoroutineScope) -> Deferred<Unit>) {
+    private var asyncFinalizer: ((CoroutineScope) -> Job)? = null
+    override fun onFinishAsync(finalizer: (CoroutineScope) -> Job) {
         this.asyncFinalizer = finalizer
     }
 
     private var finalizer: (() -> Unit)? = null
-    override fun setFinalizer(finalizer: () -> Unit) {
+    override fun onFinish(finalizer: () -> Unit) {
         this.finalizer = finalizer
     }
 
@@ -121,7 +122,7 @@ class AutoTaskImpl(private val scriptContext: ScriptContext) : AutoTask,
             }
         }
         if (!this@AutoTaskImpl::properties.isInitialized) {
-            scriptContext.getBindings().getConsole().info("setProperties 方法未调用")
+            scriptContext.getBindings().getConsole().info("provideProperties 方法未调用")
             return
         }
         val scope = scriptContext.getBindings().getCoroutines().wrapScope(
@@ -157,7 +158,7 @@ class AutoTaskImpl(private val scriptContext: ScriptContext) : AutoTask,
             }
         }
         if (isAsync) {
-            asyncFinalizer?.invoke(scope)?.getOrigin()?.await()
+            asyncFinalizer?.invoke(scope)?.getOrigin()?.join()
         } else {
             finalizer?.invoke()
         }

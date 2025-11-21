@@ -3,13 +3,14 @@ package com.m8test.enhancement.api.task
 import com.m8test.dokka.annotation.Keep
 import com.m8test.script.core.api.coroutines.CoroutineScope
 import com.m8test.script.core.api.coroutines.Deferred
+import com.m8test.script.core.api.coroutines.Job
 import com.m8test.script.core.api.engine.ScriptContextual
 
 /**
  * 自动化任务的核心接口。
  *
- * 该接口定义了一个基于屏幕状态检测的自动化任务流程。它允许开发者定义多个 [TaskScreen]，
- * 并通过轮询的方式检查当前屏幕状态，执行相应的动作。支持同步和异步两种运行模式。
+ * 该接口定义了一个基于屏幕状态检测的自动化任务流程。支持通过 DSL 风格配置屏幕（[TaskScreen]）、
+ * 匹配规则以及相应的执行动作。
  *
  * @date 2025/09/01 16:30:26
  * @author M8Test, contact@m8test.com, https://m8test.com
@@ -27,18 +28,18 @@ interface AutoTask : ScriptContextual {
     fun setLogEnabled(enabled: Boolean)
 
     /**
-     * 设置用于屏幕匹配的属性获取器。
+     * 配置用于屏幕匹配的属性提供者。
      *
-     * 该函数会在每次屏幕检查循环中被调用，用于获取当前系统的状态或 UI 属性（如控件文本、ID、颜色等）。
-     * 返回的 Map 将被传递给 [TaskScreen.setMatcher] 设置的匹配器中进行判断。
+     * 该函数会在每次屏幕检查循环中被调用，用于捕获当前系统的状态或 UI 属性。
+     * 返回的 Map 将被传递给 [TaskScreen.match] 中配置的逻辑进行判断。
      *
-     * @param properties 一个返回 Map 的函数，Map 中的 Key-Value 用于描述当前屏幕特征。
+     * @param properties 一个返回 Map 的函数，用于描述当前屏幕特征。
      */
     @Keep
-    fun setProperties(properties: () -> Map<String, Any>)
+    fun provideProperties(properties: () -> Map<String, Any>)
 
     /**
-     * 以同步方式开始运行任务。
+     * 开始运行任务（同步模式）。
      *
      * 任务会开启一个循环，不断获取属性并检查是否匹配已添加的任何 [TaskScreen]。
      *
@@ -48,7 +49,7 @@ interface AutoTask : ScriptContextual {
     fun start(interval: Long)
 
     /**
-     * 以异步方式开始运行任务。
+     * 开始运行任务（异步模式）。
      *
      * @param scope 协程作用域，用于启动异步任务。
      * @param interval 轮询间隔时间（毫秒）。
@@ -58,64 +59,64 @@ interface AutoTask : ScriptContextual {
     fun startAsync(scope: CoroutineScope, interval: Long): Deferred<Unit>
 
     /**
-     * 设置同步初始化器。
+     * 配置同步初始化回调。
      *
      * 在任务循环开始之前执行一次。通常用于检查前置条件（如无障碍服务是否开启、权限是否授予等）。
      *
      * @param initializer 初始化执行函数。如果返回 false，任务将不会启动，直接结束。
      */
     @Keep
-    fun setInitializer(initializer: () -> Boolean)
+    fun onInitialize(initializer: () -> Boolean)
 
     /**
-     * 设置异步初始化器。
+     * 配置异步初始化回调。
      *
      * 在异步任务循环开始之前执行一次。
      *
      * @param initializer 异步初始化执行函数。如果返回 false，任务将不会启动。
      */
     @Keep
-    fun setAsyncInitializer(initializer: (CoroutineScope) -> Deferred<Boolean>)
+    fun onInitializeAsync(initializer: (CoroutineScope) -> Deferred<Boolean>)
 
     /**
-     * 设置同步终结器。
+     * 配置同步结束回调。
      *
      * 在任务循环结束（无论是正常停止还是被取消）后执行一次。用于资源释放或清理工作。
      *
      * @param finalizer 任务结束时执行的函数。
      */
     @Keep
-    fun setFinalizer(finalizer: () -> Unit)
+    fun onFinish(finalizer: () -> Unit)
 
     /**
-     * 设置异步终结器。
+     * 配置异步结束回调。
      *
      * 在异步任务循环结束（无论是正常停止还是被取消）后执行一次。
      *
      * @param finalizer 任务结束时执行的异步函数。
      */
     @Keep
-    fun setAsyncFinalizer(finalizer: (CoroutineScope) -> Deferred<Unit>)
+    fun onFinishAsync(finalizer: (CoroutineScope) -> Job)
 
     /**
-     * 设置任务停止条件（同步）。
+     * 定义任务停止条件（同步）。
      *
-     * 在每一轮屏幕检查完成后调用。如果返回 true，则任务循环将终止。
+     * 在每一轮屏幕检查完成后调用。如果条件满足（返回 true），则任务循环将终止。
      *
      * @param stopped 返回 true 表示停止任务，false 表示继续运行。
      */
     @Keep
-    fun setStopped(stopped: () -> Boolean)
+    fun stopWhen(stopped: () -> Boolean)
 
     /**
-     * 设置任务停止条件（异步）。
+     * 定义任务停止条件（异步）。
      *
-     * 在每一轮屏幕检查完成后调用。如果返回 true，则任务循环将终止。
+     * 在每一轮屏幕检查完成后调用。如果条件满足（返回 true），则任务循环将终止。
      *
      * @param stopped 返回 true 表示停止任务，false 表示继续运行。
      */
     @Keep
-    fun setAsyncStopped(stopped: (CoroutineScope) -> Deferred<Boolean>)
+    fun stopWhenAsync(stopped: (CoroutineScope) -> Deferred<Boolean>)
 
     /**
      * 停止正在运行的同步任务。
@@ -158,37 +159,33 @@ interface AutoTask : ScriptContextual {
     fun addScreen(screenConfig: TaskScreen.() -> Unit)
 
     /**
-     * 设置屏幕缺失（未匹配）处理器。
+     * 配置屏幕缺失（未匹配）时的回调。
      *
      * 当遍历完所有已添加的 [TaskScreen] 后，如果没有任何一个屏幕匹配当前状态，则会调用此回调。
-     * 这通常用于处理异常状态、弹窗干扰或页面加载延迟等情况。
      *
      * @param handler 处理函数。
      *      参数 `times` 表示连续未匹配屏幕的次数。
-     *      开发者可以根据 `times` 的大小决定策略（例如：次数较少时忽略，次数较多时重启 App 或执行返回操作）。
      */
     @Keep
-    fun setScreenMissingHandler(handler: (times: Int) -> Unit)
+    fun onScreenMissing(handler: (times: Int) -> Unit)
 
     /**
-     * 设置动作执行前的钩子函数。
+     * 配置动作执行前的回调。
      *
      * 当某个 [TaskScreen] 匹配成功，且准备执行其对应的 [ScreenAction] 之前，会调用此方法。
-     * 可用于前置检查（如确保 App 处于前台）或日志埋点。
      *
      * @param hook 钩子函数，参数为即将执行动作的 [TaskScreen] 对象。
      */
     @Keep
-    fun beforeScreenActionPerform(hook: (TaskScreen) -> Unit)
+    fun beforeAction(hook: (TaskScreen) -> Unit)
 
     /**
-     * 设置动作执行后的钩子函数。
+     * 配置动作执行后的回调。
      *
      * 当某个 [TaskScreen] 的 [ScreenAction] 执行完毕后，会调用此方法。
-     * 可用于资源回收、状态重置或后续处理。
      *
      * @param hook 钩子函数，参数为刚刚执行完动作的 [TaskScreen] 对象。
      */
     @Keep
-    fun afterScreenActionPerform(hook: (TaskScreen) -> Unit)
+    fun afterAction(hook: (TaskScreen) -> Unit)
 }
